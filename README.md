@@ -28,12 +28,13 @@ Wizualizacja szkodowości względem wieku wyraźnie wskazuje na istnienie dwóch
 ### 2. Model Ulepszony (Log-Lin z interakcją)
 * Zastosowano logarytm naturalny na zmiennej objaśnianej `log(charges)` oraz wprowadzono efekt synergii `bmi * smoker`.
 * **Efekt:** Ustabilizowano wariancję reszt i zneutralizowano wpływ punktów odstających (dźwignia Cooka spadła do bezpiecznego poziomu < 0.05).
-* **Wdrożenie:** Model po przekształceniu eksponencjalnym `exp()` poprawnie i bezpiecznie wycenia profile klientów wysokiego ryzyka (np. 60-letni palacz: prognoza składki na poziomie ok. 39 340 USD).
+* **Wyzwanie metodologiczne:** Przejście z powrotem na skalę oryginalną (charges) za pomocą prostego `exp()` wprowadza systematyczne niedoszacowanie składki (efekt nierówności Jensena). Bez zastosowania korekty (np. estymatora smearing Duana lub czynnika exp(σ²/2)), prognoza dla profilu wysokiego ryzyka (np. 60-letni palacz, BMI=20) jest niedoszacowana o ok. 10.7% (ok. 39 500 USD zamiast poprawnych merytorycznie ok. 43 800 USD).
 
 ![4 wykresy](model2.png)
 
 ## 3. Model Docelowy (GLM - Rozkład Gamma)
-* Wdrożono rynkowy standard taryfikacji ubezpieczeniowej (Uogólniony Model Liniowy) z logarytmiczną funkcją łączącą family = Gamma(link = "log").
+* Wdrożono rynkowy standard taryfikacji ubezpieczeniowej (Uogólniony Model Liniowy) z logarytmiczną funkcją łączącą: `family = Gamma(link = "log")`.
+* **Zaleta teoretyczna:** GLM modeluje oczekiwaną wartość bezpośrednio na skali oryginalnej, eliminując problem obciążenia prognoz występujący przy transformacji log-normalnej (brak konieczności stosowania sztucznych korekt transformacji).
 * **Rezultat:** Prawidłowo odwzorowano prawostronną skośność rozkładu kosztów oraz wyeliminowano problem sztucznych trendów w dolnych rejestrach reszt, typowy dla klasycznej metody MNK.
 ![4 wykresy](modelgam.png)
-* **MAE:** Zmierzono dokładność predykcyjną taryfikatora za pomocą metryki MAE (Mean Absolute Error). Model myli się średnio o 4094 USD na pojedynczej polisie, co daje zarządowi czytelną miarę precyzji wyceny ryzyka w portfelu.
+* **Dopasowanie modelu (MAE):** Średni błąd dopasowania w próbie (in-sample MAE) dla modelu GLM wynosi 4094 USD na pojedynczej polisie. Stanowi to czytelną dla zarządu miarę precyzji wyceny ryzyka w obecnym portfelu.
